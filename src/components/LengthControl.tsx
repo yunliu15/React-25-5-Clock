@@ -45,16 +45,16 @@ export default function LengthControl({displayType, breakLength, setBreakLength,
     <section className='length-control'>
             <div>
                 <span className='length-label' id="break-label">Break Length</span>
-                <button disabled={timerStopped? false : true} id="break-decrement" onClick={() => {handleDecrease('break')}}> - </button>
+                <button className='decrease-btn' disabled={timerStopped? false : true} id="break-decrement" onClick={() => {handleDecrease('break')}}> - </button>
                 <span id="break-length">{breakLength}</span>
-                <button disabled={timerStopped? false : true} id="session-decrement" onClick={() => {handleIncrease('break')}}> + </button>
+                <button className='increase-btn' disabled={timerStopped? false : true} id="break-increment" onClick={() => {handleIncrease('break')}}> + </button>
             </div>
 
             <div>
                 <span className='length-label' id="session-label">Session Length</span>
-                <button disabled={timerStopped? false : true} id="break-increment" onClick={() => {handleDecrease('session')}}> - </button>
+                <button className='decrease-btn' disabled={timerStopped? false : true} id="session-decrement" onClick={() => {handleDecrease('session')}}> - </button>
                 <span id="session-length">{sessionLength}</span>
-                <button disabled={timerStopped? false : true} id="session-increment" onClick={() => {handleIncrease('session')}}> + </button>
+                <button className='increase-btn' disabled={timerStopped? false : true} id="session-increment" onClick={() => {handleIncrease('session')}}> + </button>
             </div>
         
         </section>

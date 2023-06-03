@@ -2,10 +2,8 @@ import {useState, useEffect, useRef} from 'react';
 import LengthControl from './LengthControl';
 import TimeDisplay from './TimeDisplay';
 
-const DEFAULT_SESSION: number = 1;
+const DEFAULT_SESSION: number = 25;
 const DEFAULT_BREAK: number = 5;
-const audioUrl = "https://goo.gl/65cBl1";
-const beepAudio = new Audio(audioUrl); 
 let timeInterval: undefined | NodeJS.Timer;
 export default function Clock() {
     const [sessionLength, setSessionLength] = useState<number>(DEFAULT_SESSION);
@@ -13,6 +11,8 @@ export default function Clock() {
     const [timeRemain, setTimeRemain] = useState<number>(DEFAULT_SESSION * 60);
     const [displayType, setDisplayType] = useState<'session' | 'break'>('session');
     const [timerStopped, setTimerStopped] = useState<boolean>(true);
+    const beepAudio = useRef<HTMLAudioElement>(null);
+    const [colorChange, setColorChange] = useState<boolean>(false);
 
     const startTimer = () => {
         setTimerStopped(false);
@@ -26,22 +26,24 @@ export default function Clock() {
         clearInterval(timeInterval)
         timeInterval = undefined;
         setTimerStopped(true);
-        beepAudio.currentTime = 0;
-        beepAudio.pause();
+        if(beepAudio.current) { 
+            beepAudio.current.currentTime = 0;
+            beepAudio.current.pause();
+        }
     }
     const resetTimer = () => {
         stopTimer();
         setSessionLength(DEFAULT_SESSION);
         setBreakLength(DEFAULT_BREAK);
-        displayType === 'session'? setTimeRemain(sessionLength * 60)
-        : setTimeRemain(breakLength * 60);
+        setDisplayType('session');
+        setTimeRemain(DEFAULT_SESSION * 60);
     }
     const toggleTimer = () => {
         timerStopped? startTimer() : stopTimer();
     }
 
     useEffect(() => {
-        if (timeRemain <= 0) {
+        if (timeRemain < 0) {
             if(displayType === 'session') {
                 setDisplayType('break');
                 setTimeRemain(breakLength * 60);
@@ -50,12 +52,14 @@ export default function Clock() {
                 setTimeRemain(sessionLength * 60);
             }
         }
-        if (timeRemain === 59) {
-            beepAudio.currentTime = 0;
-            const playPromise = beepAudio.play();
-            if (playPromise !== null){
-                playPromise.catch(() => { beepAudio.play(); })
-            }
+        if (timeRemain === 0 && beepAudio.current) {
+            beepAudio.current.currentTime = 0;
+            beepAudio.current.play();
+        }
+        if (timeRemain < 60 ) {
+            setColorChange(true);
+        } else {
+            setColorChange(false);
         }
 
     }, [timeRemain]);
@@ -72,13 +76,18 @@ export default function Clock() {
         timerStopped = {timerStopped}
         setTimeRemain={setTimeRemain}
         />
-        <section className='display-section'>
+        <section className={colorChange? "display-section color-red" : "display-section"}>
             <span id="timer-label">{displayType}</span>
             <TimeDisplay timeRemain={timeRemain} />
-            <button id="start_stop" onClick={toggleTimer}>Start / Pause</button>
+            <button id="start_stop" onClick={toggleTimer}>
+                <span className={timerStopped? '':'hide'}>Start</span>
+                <span className={timerStopped? 'hide':''}>Pause</span>
+            </button>
             <button id="reset" onClick={resetTimer}>Reset</button>
         </section>
-
+        <audio id="beep" preload="auto" 
+          src="http://www.peter-weinberg.com/files/1014/8073/6015/BeepSound.wav"
+          ref={beepAudio} />
     </>
   )
 }
