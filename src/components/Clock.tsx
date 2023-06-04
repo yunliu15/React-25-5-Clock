@@ -1,8 +1,8 @@
-import {useState, useEffect, useRef} from 'react';
+import {useState, useRef} from 'react';
 import LengthControl from './LengthControl';
 import TimeDisplay from './TimeDisplay';
 
-const DEFAULT_SESSION: number = 25;
+const DEFAULT_SESSION: number = 0.1;
 const DEFAULT_BREAK: number = 5;
 let timeInterval: undefined | NodeJS.Timer;
 export default function Clock() {
@@ -12,7 +12,6 @@ export default function Clock() {
     const [displayType, setDisplayType] = useState<'session' | 'break'>('session');
     const [timerStopped, setTimerStopped] = useState<boolean>(true);
     const beepAudio = useRef<HTMLAudioElement>(null);
-    const [colorChange, setColorChange] = useState<boolean>(false);
 
     const startTimer = () => {
         setTimerStopped(false);
@@ -42,27 +41,20 @@ export default function Clock() {
         timerStopped? startTimer() : stopTimer();
     }
 
-    useEffect(() => {
-        if (timeRemain < 0) {
-            if(displayType === 'session') {
-                setDisplayType('break');
-                setTimeRemain(breakLength * 60);
-            } else {
-                setDisplayType('session');
-                setTimeRemain(sessionLength * 60);
-            }
-        }
-        if (timeRemain === 0 && beepAudio.current) {
-            beepAudio.current.currentTime = 0;
-            beepAudio.current.play();
-        }
-        if (timeRemain < 60 ) {
-            setColorChange(true);
+    if (timeRemain < 0) {
+        if(displayType === 'session') {
+            setDisplayType('break');
+            setTimeRemain(breakLength * 60);
         } else {
-            setColorChange(false);
+            setDisplayType('session');
+            setTimeRemain(sessionLength * 60);
         }
+    }
 
-    }, [timeRemain]);
+    if (timeRemain === 0 && beepAudio.current) {
+        beepAudio.current.currentTime = 0;
+        beepAudio.current.play();
+    }
 
   return (
     <>
@@ -76,7 +68,7 @@ export default function Clock() {
         timerStopped = {timerStopped}
         setTimeRemain={setTimeRemain}
         />
-        <section className={colorChange? "display-section color-red" : "display-section"}>
+        <section className={timeRemain < 60? "display-section color-red" : "display-section"}>
             <span id="timer-label">{displayType}</span>
             <TimeDisplay timeRemain={timeRemain} />
             <button id="start_stop" onClick={toggleTimer}>
